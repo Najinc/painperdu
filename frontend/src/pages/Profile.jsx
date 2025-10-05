@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react'
+import React, { useState } from 'react'
 import { useMutation } from 'react-query'
-import { AuthContext } from '../contexts/AuthContext'
+import { useAuth } from '../contexts/AuthContext'
 import { User, Mail, Lock, Edit, Save, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const Profile = () => {
-  const { user, updateProfile } = useContext(AuthContext)
+  const { user, updateProfile } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [formData, setFormData] = useState({
