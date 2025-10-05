@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "restart": "docker-compose restart",
+    "build": "docker-compose build",
+    "logs": "docker-compose logs -f",
+    "logs:backend": "docker-compose logs -f backend",
+    "logs:frontend": "docker-compose logs -f frontend",
+    "logs:mongodb": "docker-compose logs -f mongodb",
+    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "clean": "docker-compose down -v && docker system prune -f"
+  }
+}
