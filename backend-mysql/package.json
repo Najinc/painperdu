@@ -14,7 +14,9 @@
     "reset-db": "node scripts/reset-database.js",
     "generate-jwt": "node scripts/generate-jwt-secret.js",
     "setup-cpanel": "node setup-cpanel.js",
-    "deploy-cpanel": "bash deploy-cpanel.sh"
+    "deploy-cpanel": "bash deploy-cpanel.sh",
+    "init-production": "node scripts/init-production.js",
+    "prod-setup": "npm install --production && node scripts/init-production.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
