@@ -10,10 +10,10 @@ require('dotenv').config();
 const logToFile = (message, level = 'INFO') => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [${level}] ${message}\n`;
-  
+
   // Écrire dans le fichier de log
   fs.appendFileSync(path.join(__dirname, 'server-error.log'), logMessage);
-  
+
   // Aussi afficher dans la console
   console.log(logMessage.trim());
 };
@@ -139,7 +139,7 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     logToFile('Démarrage du serveur...', 'START');
-    
+
     // Test de connexion à la base de données
     logToFile('Test de connexion à la base de données...', 'DB');
     await db.sequelize.authenticate();
@@ -157,7 +157,7 @@ const startServer = async () => {
       logToFile(`🚀 Serveur démarré sur le port ${PORT}`, 'START');
       logToFile(`📱 API disponible sur http://localhost:${PORT}/api`, 'START');
       logToFile(`🏥 Health check: http://localhost:${PORT}/api/health`, 'START');
-      
+
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📱 API disponible sur http://localhost:${PORT}/api`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
@@ -167,7 +167,7 @@ const startServer = async () => {
     const errorMsg = `❌ Impossible de démarrer le serveur: ${error.message}`;
     logToFile(errorMsg, 'FATAL');
     logToFile(`Stack trace: ${error.stack}`, 'FATAL');
-    
+
     console.error('❌ Impossible de démarrer le serveur:', error);
     process.exit(1);
   }
