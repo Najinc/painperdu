@@ -4,7 +4,7 @@ import axios from 'axios'
 const AuthContext = createContext()
 
 // Configuration axios
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002'
 axios.defaults.baseURL = API_URL
 
 export const useAuth = () => {

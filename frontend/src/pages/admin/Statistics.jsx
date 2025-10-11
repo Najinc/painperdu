@@ -96,18 +96,19 @@ const Statistics = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
             </div>
-            <div className="stat-title text-primary-content">Chiffre d'affaires total</div>
-            <div className="stat-value">{formatCurrency(dashboardStats.totalRevenue)}</div>
+            <div className="stat-title text-primary-content">Ventes aujourd'hui</div>
+            <div className="stat-value">{formatCurrency(dashboardStats.financial?.estimatedSales || 0)}</div>
           </div>
 
           <div className="stat bg-success text-success-content rounded-lg">
             <div className="stat-figure">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <div className="stat-title text-success-content">Total ventes</div>
-            <div className="stat-value">{dashboardStats.totalSales}</div>
+            <div className="stat-title text-success-content">Ventes moy./jour</div>
+            <div className="stat-value">{formatCurrency(dashboardStats.salesAnalytics?.averageDailySales || 0)}</div>
+            <div className="stat-desc text-success-content">Sur {dashboardStats.salesAnalytics?.periodDays || 30} jours</div>
           </div>
 
           <div className="stat bg-info text-info-content rounded-lg">
@@ -117,7 +118,7 @@ const Statistics = () => {
               </svg>
             </div>
             <div className="stat-title text-info-content">Produits actifs</div>
-            <div className="stat-value">{dashboardStats.activeProducts}</div>
+            <div className="stat-value">{dashboardStats.overview?.totalProducts || 0}</div>
           </div>
 
           <div className="stat bg-warning text-warning-content rounded-lg">
@@ -127,7 +128,31 @@ const Statistics = () => {
               </svg>
             </div>
             <div className="stat-title text-warning-content">Vendeurs actifs</div>
-            <div className="stat-value">{dashboardStats.activeSellers}</div>
+            <div className="stat-value">{dashboardStats.overview?.totalSellers || 0}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Nouvelle section pour les statistiques détaillées des ventes */}
+      {dashboardStats?.salesAnalytics && (
+        <div className="card bg-base-100 shadow-xl mb-8">
+          <div className="card-body">
+            <h2 className="card-title">📊 Analyse des Ventes (30 derniers jours)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="stat">
+                <div className="stat-title">Total ventes 30j</div>
+                <div className="stat-value text-primary">{formatCurrency(dashboardStats.salesAnalytics.totalSalesLast30Days)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-title">Moyenne quotidienne</div>
+                <div className="stat-value text-success">{formatCurrency(dashboardStats.salesAnalytics.averageDailySales)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-title">Jours avec ventes</div>
+                <div className="stat-value text-info">{dashboardStats.salesAnalytics.numberOfSalesDays}</div>
+                <div className="stat-desc">sur {dashboardStats.salesAnalytics.periodDays} jours</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -137,25 +162,26 @@ const Statistics = () => {
         <div className="card bg-base-100 shadow-xl mb-8">
           <div className="card-body">
             <h2 className="card-title">Évolution sur la période</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="stat">
-                <div className="stat-title">Ventes de la période</div>
-                <div className="stat-value text-primary">{periodStats.totalSales}</div>
+                <div className="stat-title">Ventes estimées</div>
+                <div className="stat-value text-primary">{formatCurrency(periodStats.summary?.totalEstimatedSales || 0)}</div>
                 <div className="stat-desc">
                   {formatDate(dateRange.startDate)} - {formatDate(dateRange.endDate)}
                 </div>
               </div>
               <div className="stat">
-                <div className="stat-title">CA de la période</div>
-                <div className="stat-value text-success">{formatCurrency(periodStats.totalRevenue)}</div>
-                <div className="stat-desc">
-                  Moyenne: {formatCurrency(periodStats.averageDaily)}
-                </div>
+                <div className="stat-title">Stock ouverture</div>
+                <div className="stat-value text-info">{formatCurrency(periodStats.summary?.totalOpeningValue || 0)}</div>
               </div>
               <div className="stat">
-                <div className="stat-title">Panier moyen</div>
-                <div className="stat-value text-accent">{formatCurrency(periodStats.averageBasket)}</div>
-                <div className="stat-desc">Par transaction</div>
+                <div className="stat-title">Stock fermeture</div>
+                <div className="stat-value text-warning">{formatCurrency(periodStats.summary?.totalClosingValue || 0)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-title">Inventaires</div>
+                <div className="stat-value text-accent">{periodStats.summary?.totalInventories || 0}</div>
+                <div className="stat-desc">Total sur la période</div>
               </div>
             </div>
           </div>
@@ -178,17 +204,17 @@ const Statistics = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {productStats && productStats.length > 0 ? productStats.slice(0, 10).map((product, index) => (
-                      <tr key={product._id}>
+                    {productStats?.productStats && productStats.productStats.length > 0 ? productStats.productStats.slice(0, 10).map((product, index) => (
+                      <tr key={product.product.id}>
                         <td>
                           <div className="flex items-center gap-2">
                             <div className="badge badge-primary badge-sm">{index + 1}</div>
-                            {product.name}
+                            {product.product.name}
                           </div>
                         </td>
-                        <td className="font-bold">{product.totalQuantity}</td>
+                        <td className="font-bold">{product.soldQuantity}</td>
                         <td className="text-success font-bold">
-                          {formatCurrency(product.totalRevenue)}
+                          {formatCurrency(product.salesValue)}
                         </td>
                       </tr>
                     )) : (
@@ -200,7 +226,7 @@ const Statistics = () => {
                     )}
                   </tbody>
                 </table>
-                {productStats.length === 0 && (
+                {(!productStats?.productStats || productStats.productStats.length === 0) && (
                   <div className="text-center py-4">
                     <p className="text-gray-500">Aucune donnée pour cette période</p>
                   </div>
@@ -220,22 +246,22 @@ const Statistics = () => {
                   <thead>
                     <tr>
                       <th>Vendeur</th>
-                      <th>Ventes</th>
-                      <th>CA</th>
+                      <th>Inventaires</th>
+                      <th>Valeur totale</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sellerStats && sellerStats.length > 0 ? sellerStats.map((seller, index) => (
-                      <tr key={seller._id}>
+                      <tr key={seller.seller.id}>
                         <td>
                           <div className="flex items-center gap-2">
                             <div className="badge badge-secondary badge-sm">{index + 1}</div>
-                            {seller.firstName} {seller.lastName}
+                            {seller.seller.firstName || seller.seller.name} {seller.seller.lastName || ''}
                           </div>
                         </td>
-                        <td className="font-bold">{seller.totalSales}</td>
+                        <td className="font-bold">{seller.totalInventories}</td>
                         <td className="text-success font-bold">
-                          {formatCurrency(seller.totalRevenue)}
+                          {formatCurrency(seller.totalValue)}
                         </td>
                       </tr>
                     )) : (
@@ -259,19 +285,19 @@ const Statistics = () => {
       </div>
 
       {/* Graphiques simples avec CSS */}
-      {productStats && productStats.length > 0 && (
+      {productStats?.productStats && productStats.productStats.length > 0 && (
         <div className="card bg-base-100 shadow-xl mt-8">
           <div className="card-body">
             <h2 className="card-title">Répartition des ventes par produit</h2>
             <div className="space-y-3">
-              {productStats && productStats.length > 0 && productStats.slice(0, 5).map((product) => {
-                const topProducts = productStats.slice(0, 5)
-                const maxQuantity = Math.max(...topProducts.map(p => p.totalQuantity || 0))
-                const percentage = maxQuantity > 0 ? (product.totalQuantity / maxQuantity) * 100 : 0
+              {productStats.productStats.slice(0, 5).map((product) => {
+                const topProducts = productStats.productStats.slice(0, 5)
+                const maxQuantity = Math.max(...topProducts.map(p => p.soldQuantity || 0))
+                const percentage = maxQuantity > 0 ? (product.soldQuantity / maxQuantity) * 100 : 0
                 
                 return (
-                  <div key={product._id} className="flex items-center gap-4">
-                    <div className="w-32 text-sm truncate">{product.name}</div>
+                  <div key={product.product.id} className="flex items-center gap-4">
+                    <div className="w-32 text-sm truncate">{product.product.name}</div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-base-300 rounded-full h-4 relative overflow-hidden">
@@ -281,7 +307,7 @@ const Statistics = () => {
                           ></div>
                         </div>
                         <div className="text-sm font-bold min-w-0">
-                          {product.totalQuantity}
+                          {product.soldQuantity}
                         </div>
                       </div>
                     </div>

@@ -29,7 +29,7 @@ const SellerProducts = () => {
       const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                            (product.description || '').toLowerCase().includes(searchTerm.toLowerCase())
       
-      const matchesCategory = !selectedCategory || product.category._id === selectedCategory
+      const matchesCategory = !selectedCategory || product.category.id === selectedCategory
 
       return matchesSearch && matchesCategory
     })
@@ -87,7 +87,7 @@ const SellerProducts = () => {
               >
                 <option value="">Toutes les catégories</option>
                 {categories?.map((category) => (
-                  <option key={category._id} value={category._id}>
+                  <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
@@ -129,7 +129,7 @@ const SellerProducts = () => {
           </div>
         ) : (
           filteredProducts.map((product) => (
-            <div key={product._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div key={product.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
               <div className="card-body">
                 <h2 className="card-title text-lg">{product.name}</h2>
                 

@@ -35,7 +35,7 @@ const Products = () => {
     queryFn: () => axios.get('/api/categories').then(res => res.data)
   })
 
-  const categories = categoriesResponse?.categories || []
+  const categories = categoriesResponse || []
 
   // Filtrer et trier les produits
   const filteredAndSortedProducts = useMemo(() => {
@@ -46,8 +46,9 @@ const Products = () => {
                            (product.description || '').toLowerCase().includes(searchTerm.toLowerCase())
       
       const matchesCategory = !selectedCategory || 
-                             (product.category && product.category._id === selectedCategory) ||
-                             (typeof product.category === 'string' && product.category === selectedCategory)
+                             (product.categoryInfo && product.categoryInfo.id === parseInt(selectedCategory)) ||
+                             (typeof product.category === 'string' && product.category === selectedCategory) ||
+                             (typeof product.category === 'number' && product.category === parseInt(selectedCategory))
       
       const matchesStatus = statusFilter === 'all' || 
                            (statusFilter === 'active' && product.isActive) ||
@@ -131,10 +132,17 @@ const Products = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Transformer les données pour le backend (convertir en entier)
+    const dataToSend = {
+      ...formData,
+      category: parseInt(formData.category)
+    }
+    
     if (editingProduct) {
-      updateProductMutation.mutate({ id: editingProduct._id, data: formData })
+      updateProductMutation.mutate({ id: editingProduct.id, data: dataToSend })
     } else {
-      createProductMutation.mutate(formData)
+      createProductMutation.mutate(dataToSend)
     }
   }
 
@@ -143,7 +151,7 @@ const Products = () => {
     setFormData({
       name: product.name,
       description: product.description || '',
-      category: product.category?._id || product.category || '',
+      category: product.categoryInfo?.id || product.category || '',
       price: product.price,
       isActive: product.isActive
     })
@@ -218,7 +226,7 @@ const Products = () => {
               >
                 <option value="">Toutes les catégories</option>
                 {categories?.map((category) => (
-                  <option key={category._id} value={category._id}>
+                  <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}
@@ -316,11 +324,11 @@ const Products = () => {
                   </tr>
                 ) : (
                   filteredAndSortedProducts.map((product) => (
-                  <tr key={product._id}>
+                  <tr key={product.id}>
                     <td className="font-medium">{product.name}</td>
                     <td>
                       <span className="badge badge-outline">
-                        {product.category?.name || 'Non définie'}
+                        {product.categoryInfo?.name || 'Non définie'}
                       </span>
                     </td>
                     <td className="font-bold text-primary">{formatPrice(product.price)}</td>
@@ -342,7 +350,7 @@ const Products = () => {
                         </button>
                         <button 
                           className="btn btn-sm btn-outline btn-error"
-                          onClick={() => handleDelete(product._id)}
+                          onClick={() => handleDelete(product.id)}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -394,7 +402,7 @@ const Products = () => {
                   >
                     <option value="">Sélectionner une catégorie</option>
                     {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
+                      <option key={category.id} value={category.id}>
                         {category.name}
                       </option>
                     ))}

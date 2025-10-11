@@ -18,10 +18,12 @@ const Inventories = () => {
   const queryClient = useQueryClient()
 
   // Récupérer tous les inventaires
-  const { data: inventories = [], isLoading } = useQuery({
+  const { data: inventoriesData = {}, isLoading } = useQuery({
     queryKey: ['all-inventories'],
-    queryFn: () => axios.get('/api/inventory/all').then(res => res.data)
+    queryFn: () => axios.get('/api/inventory').then(res => res.data)
   })
+
+  const inventories = inventoriesData.inventories || [];
 
   // Mutation pour confirmer un inventaire
   const confirmInventoryMutation = useMutation({
@@ -46,10 +48,10 @@ const Inventories = () => {
   const filteredInventories = useMemo(() => {
     return inventories.filter(inventory => {
       const matchesSearch = 
-        (inventory.seller?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inventory.sellerInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (inventory.notes || '').toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesSeller = !selectedSeller || inventory.seller._id === selectedSeller
+      const matchesSeller = !selectedSeller || inventory.sellerInfo.id === selectedSeller
       const matchesType = !selectedType || inventory.type === selectedType
       const matchesStatus = !selectedStatus || 
         (selectedStatus === 'confirmed' && inventory.isConfirmed) ||
@@ -190,7 +192,7 @@ const Inventories = () => {
               >
                 <option value="">Tous les vendeurs</option>
                 {sellers.map((seller) => (
-                  <option key={seller._id} value={seller._id}>
+                  <option key={seller.id} value={seller.id}>
                     {seller.name}
                   </option>
                 ))}
@@ -288,7 +290,7 @@ const Inventories = () => {
                   </tr>
                 ) : (
                   filteredInventories.map((inventory) => (
-                    <tr key={inventory._id}>
+                    <tr key={inventory.id}>
                       <td>
                         <div className="flex flex-col">
                           <span className="font-medium">
@@ -304,15 +306,15 @@ const Inventories = () => {
                           <div className="avatar placeholder">
                             <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
                               <span className="text-xs">
-                                {(inventory.seller?.name || inventory.seller?.firstName || inventory.seller?.email || 'U').charAt(0).toUpperCase()}
+                                {(inventory.sellerInfo?.name || inventory.sellerInfo?.firstName || inventory.sellerInfo?.email || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
                           </div>
                           <span>
-                            {inventory.seller?.name || 
-                             (inventory.seller?.firstName && inventory.seller?.lastName 
-                               ? `${inventory.seller.firstName} ${inventory.seller.lastName}` 
-                               : inventory.seller?.email || 'Utilisateur inconnu')}
+                            {inventory.sellerInfo?.name || 
+                             (inventory.sellerInfo?.firstName && inventory.sellerInfo?.lastName 
+                               ? `${inventory.sellerInfo.firstName} ${inventory.sellerInfo.lastName}` 
+                               : inventory.sellerInfo?.username || 'Utilisateur inconnu')}
                           </span>
                         </div>
                       </td>
@@ -346,7 +348,7 @@ const Inventories = () => {
                           </button>
                           {!inventory.isConfirmed && (
                             <button
-                              onClick={() => confirmInventory(inventory._id)}
+                              onClick={() => confirmInventory(inventory.id)}
                               className="btn btn-sm btn-success tooltip"
                               data-tip="Valider l'inventaire"
                             >
@@ -371,7 +373,7 @@ const Inventories = () => {
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
             <h3 className="font-bold text-lg mb-4">
-              Détails de l'inventaire - {selectedInventory.seller.name}
+              Détails de l'inventaire - {selectedinventory.sellerInfo.name}
             </h3>
             
             <div className="grid grid-cols-2 gap-4 mb-6">

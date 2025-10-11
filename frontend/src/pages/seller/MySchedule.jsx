@@ -15,10 +15,12 @@ const MySchedule = () => {
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
 
   // Récupérer les plannings de la semaine
-  const { data: schedules = [], isLoading } = useQuery({
+  const { data: schedulesResponse = {}, isLoading } = useQuery({
     queryKey: ['my-schedules', format(weekStart, 'yyyy-MM-dd'), format(weekEnd, 'yyyy-MM-dd')],
-    queryFn: () => axios.get(`/api/schedules/my-schedule?startDate=${format(weekStart, 'yyyy-MM-dd')}&endDate=${format(weekEnd, 'yyyy-MM-dd')}`).then(res => res.data)
+    queryFn: () => axios.get(`/api/schedules?startDate=${format(weekStart, 'yyyy-MM-dd')}&endDate=${format(weekEnd, 'yyyy-MM-dd')}`).then(res => res.data)
   })
+
+  const schedules = schedulesResponse.schedules || []
 
   const navigateWeek = (direction) => {
     const newDate = new Date(currentDate)
@@ -142,7 +144,7 @@ const MySchedule = () => {
                   ) : (
                     daySchedules.map((schedule) => (
                       <div 
-                        key={schedule._id} 
+                        key={schedule.id} 
                         className="bg-base-200 rounded-lg p-3 space-y-1"
                       >
                         <div className="flex items-center gap-2">

@@ -18,7 +18,7 @@ const Schedules = () => {
   // Récupérer les plannings
   const { data: schedules = [], isLoading: loadingSchedules } = useQuery({
     queryKey: ['schedules', selectedWeek],
-    queryFn: () => axios.get(`/api/schedules?week=${selectedWeek}`).then(res => res.data)
+    queryFn: () => axios.get(`/api/schedules?week=${selectedWeek}`).then(res => res.data.schedules || [])
   })
 
   // Récupérer les vendeurs
@@ -77,7 +77,7 @@ const Schedules = () => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (editingSchedule) {
-      updateScheduleMutation.mutate({ id: editingSchedule._id, data: formData })
+      updateScheduleMutation.mutate({ id: editingSchedule.id, data: formData })
     } else {
       createScheduleMutation.mutate(formData)
     }
@@ -86,7 +86,7 @@ const Schedules = () => {
   const handleEdit = (schedule) => {
     setEditingSchedule(schedule)
     setFormData({
-      seller: schedule.seller._id,
+      seller: schedule.user?.id || schedule.seller,
       date: schedule.date.split('T')[0],
       startTime: schedule.startTime || '08:00',
       endTime: schedule.endTime || '17:00',
@@ -124,6 +124,9 @@ const Schedules = () => {
 
   const getSchedulesForDay = (date) => {
     const dateStr = date.toISOString().split('T')[0]
+    if (!schedules || !Array.isArray(schedules)) {
+      return []
+    }
     return schedules.filter(s => 
       s.date.split('T')[0] === dateStr
     ).sort((a, b) => (a.startTime || '08:00').localeCompare(b.startTime || '08:00'))
@@ -209,21 +212,21 @@ const Schedules = () => {
                         {daySchedules.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
                             {daySchedules.map((schedule) => (
-                              <div key={schedule._id} className="dropdown dropdown-hover">
+                              <div key={schedule.id} className="dropdown dropdown-hover dropdown-top dropdown-end">
                                 <div 
                                   tabIndex={0} 
                                   className="badge badge-primary cursor-pointer p-3"
                                 >
-                                  {schedule.seller.firstName} {schedule.seller.lastName}
+                                  {schedule.user?.firstName || 'N/A'} {schedule.user?.lastName || ''}
                                   <br />
                                   <span className="text-xs">
                                     {schedule.startTime || '08:00'} - {schedule.endTime || '17:00'}
                                   </span>
                                 </div>
-                                <div className="dropdown-content card card-compact w-64 p-2 shadow bg-primary text-primary-content">
+                                <div className="dropdown-content card card-compact w-64 p-2 shadow bg-primary text-primary-content z-50">
                                   <div className="card-body">
                                     <h3 className="card-title text-sm">
-                                      {schedule.seller.firstName} {schedule.seller.lastName}
+                                      {schedule.user?.firstName || 'N/A'} {schedule.user?.lastName || ''}
                                     </h3>
                                     <p className="text-xs">
                                       {formatDate(schedule.date)} - {schedule.startTime || '08:00'} à {schedule.endTime || '17:00'}
@@ -241,7 +244,7 @@ const Schedules = () => {
                                       </button>
                                       <button 
                                         className="btn btn-sm btn-ghost"
-                                        onClick={() => handleDelete(schedule._id)}
+                                        onClick={() => handleDelete(schedule.id)}
                                       >
                                         Supprimer
                                       </button>
@@ -282,9 +285,9 @@ const Schedules = () => {
               </thead>
               <tbody>
                 {schedules.map((schedule) => (
-                  <tr key={schedule._id}>
+                  <tr key={schedule.id}>
                     <td className="font-medium">
-                      {schedule.seller.firstName} {schedule.seller.lastName}
+                      {schedule.user?.firstName || 'N/A'} {schedule.user?.lastName || ''}
                     </td>
                     <td>{formatDate(schedule.date)}</td>
                     <td>
@@ -310,7 +313,7 @@ const Schedules = () => {
                         </button>
                         <button 
                           className="btn btn-sm btn-outline btn-error"
-                          onClick={() => handleDelete(schedule._id)}
+                          onClick={() => handleDelete(schedule.id)}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -353,7 +356,7 @@ const Schedules = () => {
                   >
                     <option value="">Sélectionner un vendeur</option>
                     {users.map((user) => (
-                      <option key={user._id} value={user._id}>
+                      <option key={user.id} value={user.id}>
                         {user.firstName} {user.lastName} ({user.username})
                       </option>
                     ))}

@@ -114,7 +114,7 @@ const Categories = () => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (editingCategory) {
-      updateMutation.mutate({ id: editingCategory._id, data: formData })
+      updateMutation.mutate({ id: editingCategory.id, data: formData })
     } else {
       createMutation.mutate(formData)
     }
@@ -142,7 +142,7 @@ const Categories = () => {
 
   const handleToggleActive = (category) => {
     updateMutation.mutate({
-      id: category._id,
+      id: category.id,
       data: { isActive: !category.isActive }
     })
   }
@@ -235,7 +235,7 @@ const Categories = () => {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAndSortedCategories?.map((category) => (
-          <div key={category._id} className="card bg-base-100 shadow-xl">
+          <div key={category.id} className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -262,7 +262,7 @@ const Categories = () => {
                   <button 
                     onClick={() => {
                       if (confirm('Êtes-vous sûr de vouloir désactiver cette catégorie ?')) {
-                        deleteMutation.mutate(category._id)
+                        deleteMutation.mutate(category.id)
                       }
                     }}
                     className="btn btn-sm btn-ghost text-error"

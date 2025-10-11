@@ -28,42 +28,57 @@ const Inventory = () => {
   const products = productsResponse?.products || []
 
   // Récupérer l'inventaire existant pour la date et le type sélectionnés
-  const { data: existingInventory, refetch: refetchInventory } = useQuery({
+  const { data: existingInventoryData, refetch: refetchInventory } = useQuery({
     queryKey: ['inventory', selectedDate, inventoryType, user?.id],
-    queryFn: () => axios.get(`/api/inventory?date=${selectedDate}&type=${inventoryType}&seller=${user?.id}`).then(res => res.data),
+    queryFn: () => axios.get(`/api/inventory?userId=${user?.id}&startDate=${selectedDate}&endDate=${selectedDate}`).then(res => res.data),
     enabled: !!user?.id
   })
 
+  const existingInventory = existingInventoryData?.inventories || []
+
   // Récupérer l'historique des inventaires
-  const { data: inventoryHistory } = useQuery({
+  const { data: inventoryHistoryData } = useQuery({
     queryKey: ['inventory-history', user?.id],
-    queryFn: () => axios.get(`/api/inventory/history?seller=${user?.id}&limit=10`).then(res => res.data)
+    queryFn: () => axios.get(`/api/inventory?userId=${user?.id}&limit=10&sortBy=date&sortOrder=DESC`).then(res => res.data)
   })
+
+  const inventoryHistory = inventoryHistoryData?.inventories || []
 
   // Charger l'inventaire existant si disponible
   useEffect(() => {
     if (existingInventory && existingInventory.length > 0) {
-      const inventory = existingInventory[0]
-      setInventoryItems(inventory.items.map(item => ({
-        product: item.product._id,
-        productName: item.product.name,
-        quantity: item.quantity,
-        price: item.product.price
-      })))
-      setNotes(inventory.notes || '')
-      setEditingInventory(inventory)
+      // Filtrer par date et type pour trouver l'inventaire correspondant
+      const todayInventory = existingInventory.find(inv => {
+        const invDate = new Date(inv.date).toISOString().split('T')[0]
+        return invDate === selectedDate && inv.type === inventoryType
+      })
+      
+      if (todayInventory) {
+        setInventoryItems(todayInventory.items.map(item => ({
+          product: item.product.id,
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price
+        })))
+        setNotes(todayInventory.notes || '')
+        setEditingInventory(todayInventory)
+      } else {
+        setInventoryItems([])
+        setNotes('')
+        setEditingInventory(null)
+      }
     } else {
       setInventoryItems([])
       setNotes('')
       setEditingInventory(null)
     }
-  }, [existingInventory])
+  }, [existingInventory, selectedDate, inventoryType])
 
   // Créer ou mettre à jour un inventaire
   const saveInventoryMutation = useMutation({
     mutationFn: (data) => {
       if (editingInventory) {
-        return axios.put(`/api/inventory/${editingInventory._id}`, data)
+        return axios.put(`/api/inventory/${editingInventory.id}`, data)
       }
       return axios.post('/api/inventory', data)
     },
@@ -91,16 +106,16 @@ const Inventory = () => {
   )
 
   const addProductToInventory = (product) => {
-    const existing = inventoryItems.find(item => item.product === product._id)
+    const existing = inventoryItems.find(item => item.product === product.id)
     if (existing) {
       setInventoryItems(items => items.map(item =>
-        item.product === product._id 
+        item.product === product.id 
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ))
     } else {
       setInventoryItems(items => [...items, {
-        product: product._id,
+        product: product.id,
         productName: product.name,
         quantity: 1,
         price: product.price
@@ -147,7 +162,7 @@ const Inventory = () => {
 
   const handleConfirmInventory = () => {
     if (editingInventory && !editingInventory.isConfirmed) {
-      confirmInventoryMutation.mutate(editingInventory._id)
+      confirmInventoryMutation.mutate(editingInventory.id)
     }
   }
 
@@ -367,7 +382,7 @@ const Inventory = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
               {filteredProducts.map((product) => (
                 <div
-                  key={product._id}
+                  key={product.id}
                   className="card card-compact bg-base-200 hover:bg-base-300 cursor-pointer transition-colors"
                   onClick={() => addProductToInventory(product)}
                 >
@@ -407,7 +422,7 @@ const Inventory = () => {
                 </thead>
                 <tbody>
                   {inventoryHistory.map((inv) => (
-                    <tr key={inv._id}>
+                    <tr key={inv.id}>
                       <td>{format(new Date(inv.date), 'dd/MM/yyyy', { locale: fr })}</td>
                       <td>
                         <span className={`badge ${inv.type === 'ouverture' ? 'badge-primary' : 'badge-secondary'}`}>
